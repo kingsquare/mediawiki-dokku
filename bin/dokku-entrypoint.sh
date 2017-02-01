@@ -16,6 +16,7 @@ echo 'export ' . implode(' ', [
     'MEDIAWIKI_DB_USER=' . $DATABASE_URL['user'],
     'MEDIAWIKI_DB_PASSWORD=' . $DATABASE_URL['pass'],
     'MEDIAWIKI_DB_NAME=' . trim($DATABASE_URL['path'], '/'),
+    'MEDIAWIKI_UPDATE=true',
     'MEDIAWIKI_SITE_SERVER=http://dokku/',
     'MEDIAWIKI_RESTBASE_URL=',
 ]);
