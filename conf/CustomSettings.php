@@ -21,7 +21,8 @@ if (getenv('PHP_ENV') !== 'production') {
 }
 
 //////////////////////////////////
-// configure database from dokku env
+// Configure database from dokku env
+//
 $DATABASE_URL = parse_url(getenv('DATABASE_URL'));
 if (empty($DATABASE_URL)) {
     die('"DATABASE_URL" is not set.. have you linked the database?');
@@ -44,7 +45,87 @@ $wgDBTableOptions = "ENGINE=InnoDB, DEFAULT CHARSET=binary";
 $wgDBmysql5 = false;
 
 //////////////////////////////////
-// configure memcached from dokku env
+// Configure redis caching from dokku env
+//
+// @see https://www.mediawiki.org/wiki/Redis
+
+$REDIS_URL = parse_url(getenv('REDIS_URL'));
+if (!empty($REDIS_URL['host'])) {
+
+    if (!isset($wgObjectCaches)) {
+        $wgObjectCaches = [];
+    }
+
+    /**
+     * @see mediawiki-1.28.0/includes/libs/objectcache/RedisBagOStuff.php
+     *
+     * Construct a RedisBagOStuff object. Parameters are:
+     *
+     *   - servers: An array of server names. A server name may be a hostname,
+     *     a hostname/port combination or the absolute path of a UNIX socket.
+     *     If a hostname is specified but no port, the standard port number
+     *     6379 will be used. Arrays keys can be used to specify the tag to
+     *     hash on in place of the host/port. Required.
+     *
+     *   - connectTimeout: The timeout for new connections, in seconds. Optional,
+     *     default is 1 second.
+     *
+     *   - persistent: Set this to true to allow connections to persist across
+     *     multiple web requests. False by default.
+     *
+     *   - password: The authentication password, will be sent to Redis in
+     *     clear text. Optional, if it is unspecified, no AUTH command will be
+     *     sent.
+     *
+     *   - automaticFailover: If this is false, then each key will be mapped to
+     *     a single server, and if that server is down, any requests for that key
+     *     will fail. If this is true, a connection failure will cause the client
+     *     to immediately try the next server in the list (as determined by a
+     *     consistent hashing algorithm). True by default. This has the
+     *     potential to create consistency issues if a server is slow enough to
+     *     flap, for example if it is in swap death.
+     */
+    $wgObjectCaches['redis'] = [
+        'class'                => 'RedisBagOStuff',
+        'servers'              => [ $REDIS_URL['host'] . ':' . ($REDIS_URL['port'] ?: 6379) ],
+        // 'connectTimeout'    => 1,
+        // 'persistent'        => false,
+        'password'          => $REDIS_URL['pass'] ?: '',
+        // 'automaticFailOver' => true,
+    ];
+
+    // You'll now be able to acquire a Redis object cache object via wfGetCache( 'redis' ).
+    // If you'd like to use Redis as the default cache for various data,
+    // you may set any of the following configuration options
+    $wgMainCacheType = 'redis';
+    $wgSessionCacheType = 'redis';  // same as WMF prod
+
+    // Not widely tested:
+    $wgMessageCacheType = 'redis';
+    $wgParserCacheType = 'redis';
+    $wgLanguageConverterCacheType = 'redis';
+
+    /**
+     * Job queue
+     *
+     * @see mediawiki-1.28.0/includes/jobqueue/JobQueueRedis.php
+     * @see mediawiki-1.28.0/includes/libs/redis/RedisConnectionPool.php
+     */
+    $wgJobTypeConf['default'] = array(
+        'class'          => 'JobQueueRedis',
+        'redisServer'    => $wgObjectCaches['redis']['servers'][0],
+        'redisConfig'    => [
+            // 'connectTimeout'    => 1,
+            // 'readTimeout'       => 1,
+            // 'persistent'       => false,
+            'password' => $wgObjectCaches['redis']['password'],
+            // 'serializer'
+        ],
+        'claimTTL'       => 3600
+    );
+
+}
+
 ## Shared memory settings
 /*
 $wgMainCacheType = CACHE_MEMCACHED;

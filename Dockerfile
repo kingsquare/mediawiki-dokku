@@ -1,7 +1,8 @@
 FROM aubreyhewes/mediawiki:1.28
 
+# install redis php module
 # update upstream composer
-RUN composer self-update
+RUN pecl install redis && docker-php-ext-enable redis && composer self-update && composer clearcache
 
 # add dokku configuration
 COPY conf /conf
