@@ -36,10 +36,10 @@ $wgDBuser = substr($DATABASE_URL['user'], 0, 16);
 $wgDBpassword = $DATABASE_URL['pass'];
 
 # MySQL specific settings
-$wgDBprefix = "";
+$wgDBprefix = '';
 
 # MySQL table options to use during installation or update
-$wgDBTableOptions = "ENGINE=InnoDB, DEFAULT CHARSET=binary";
+$wgDBTableOptions = 'ENGINE=InnoDB, DEFAULT CHARSET=binary';
 
 # Experimental charset support for MySQL 5.0.
 $wgDBmysql5 = false;
@@ -108,20 +108,59 @@ if (!empty($REDIS_URL['host'])) {
     /**
      * Job queue
      *
+     * Note: if not daemonized;
+     *
+     * InvalidArgumentException from line 98 of /var/www/html/includes/jobqueue/JobQueueRedis.php: .
+     * Non-daemonized mode is no longer supported. Please install the mediawiki/services/jobrunner service
+     * and update $wgJobTypeConf as needed.
+     *
      * @see mediawiki-1.28.0/includes/jobqueue/JobQueueRedis.php
      * @see mediawiki-1.28.0/includes/libs/redis/RedisConnectionPool.php
      */
-    $wgJobTypeConf['default'] = array(
-        'class'          => 'JobQueueRedis',
-        'redisServer'    => $wgObjectCaches['redis']['servers'][0],
-        'redisConfig'    => [
-            // 'connectTimeout'    => 1,
-            // 'readTimeout'       => 1,
-            // 'persistent'       => false,
-            'password' => $wgObjectCaches['redis']['password'],
-            // 'serializer'
-        ],
-        'claimTTL'       => 3600
+    if (getenv('MEDIAWIKI_ENABLE_REDIS_JOBQUEUE')) {
+        $wgJobTypeConf['default'] = array(
+            'class'          => 'JobQueueRedis',
+            'redisServer'    => $wgObjectCaches['redis']['servers'][0],
+            'redisConfig'    => [
+                // 'connectTimeout'    => 1,
+                // 'readTimeout'       => 1,
+                // 'persistent'       => false,
+                'password' => $wgObjectCaches['redis']['password'],
+                // 'serializer'
+            ],
+            'daemonized'     => true,
+            'claimTTL'       => 3600
+        );
+    }
+
+}
+
+//////////////////////////////////
+// Configure smtp mailing
+//
+// @see https://www.mediawiki.org/wiki/Mail
+
+$SMTP_URL = parse_url(trim(getenv('SMTP_URL')));
+if (!empty($SMTP_URL['host'])) {
+
+    $params = [];
+    if (!empty($SMTP_URL['query'])) {
+        parse_str($SMTP_URL['query'], $params);
+    }
+
+    $wgSMTP = array(
+        // could also be an IP address. Where the SMTP server is located
+        'host' => (isset($params['ssl']) && $params['ssl'] === '1' ? 'ssl://' : '') . ($SMTP_URL['host'] ?: 'localhost'),
+        // Generally this will be the domain name of your website (aka mywiki.org)
+        'IDHost' => $params['IDHost'] ?: 'localhost', // TODO try to retrieve from user name...
+        // Port to use when connecting to the SMTP server
+        'port' => $SMTP_URL['port'] ?: 25,
+        // Should we use SMTP authentication (true or false)
+        'auth' => isset($params['auth']) && $params['auth'] === '1',
+        // Username to use for SMTP authentication (if being used)
+        'username' => $SMTP_URL['user'] ?: '',
+        // Password to use for SMTP authentication (if being used)
+        'password' => $SMTP_URL['pass'] ?: ''
     );
 
 }
@@ -142,7 +181,7 @@ $wgScriptPath = '';
 #$wgArticlePath = "/wiki/$1";
 
 ## The protocol and server name to use in fully-qualified URLs
-$wgServer = '//' . $_SERVER['HTTP_HOST'];
+$wgServer = '//' . ($_SERVER['HTTP_HOST'] ?: 'localhost');
 
 ## The URL path to static resources (images, scripts, etc.)
 $wgResourceBasePath = $wgScriptPath;
@@ -158,8 +197,10 @@ if (getenv('MEDIAWIKI_DISABLE_ANONYMOUS_EDIT')) {
     $wgGroupPermissions['*']['edit'] = false;
 }
 
-$wgSitename = "DokkuMediaWiki";
+$wgSitename = 'DokkuMediaWiki';
 
 // include app custom settings which can override this and inherited LocalSettings.php
 /** @noinspection UnnecessaryParenthesesInspection */
+/** @noinspection UntrustedInclusionInspection */
+/** @noinspection PhpIncludeInspection */
 @include('/app/LocalSettings.php');
