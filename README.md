@@ -2,8 +2,9 @@
 
 MediaWiki docker image for dokku
 
- - [*] supports linked database
- - [ ] supports linked redis
+ - [*] supports linked database (via DATABASE_URL)
+ - [*] supports linked redis (via REDIS_URL)
+ - [*] supports linked smtp (via SMTP_URL)
  - [ ] supports linked memcached
 
 ## Usage
@@ -38,3 +39,16 @@ Currently this can only be used via a `Dockerfile` deployment
 
     # Start a previously stopped mariadb service
     dokku mariadb:start mediawiki
+
+# Env variables
+
+When starting the following vars are required:
+
+    MEDIAWIKI_ADMIN_USER
+    MEDIAWIKI_ADMIN_PASS
+
+The following vars can be used to change some behaviour:
+
+    MEDIAWIKI_UPDATE
+
+    MEDIAWIKI_ENABLE_REDIS_JOBQUEUE
