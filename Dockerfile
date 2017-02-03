@@ -1,4 +1,4 @@
-FROM aubreyhewes/mediawiki:1.28
+FROM kingsquare/mediawiki:latest
 
 # install redis php module
 # update upstream composer
