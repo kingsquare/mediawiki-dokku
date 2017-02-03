@@ -10,8 +10,10 @@ if (getenv('PHP_ENV') !== 'production') {
     ini_set('display_errors', 1);
 
     $wgDebugToolbar = true;
+    $wgShowDebug = false; // in-page
 
-    $wgShowDebug = false;
+    $wgDebugAPI = true;
+    $wgResourceLoaderDebug  = true;
     $wgDebugPrintHttpHeaders  = true;
     $wgDebugTimestamps  = true;
     $wgDevelopmentWarnings = true;
