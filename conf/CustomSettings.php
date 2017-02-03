@@ -90,7 +90,7 @@ if (!empty($REDIS_URL['host'])) {
         'servers'              => [ $REDIS_URL['host'] . ':' . ($REDIS_URL['port'] ?: 6379) ],
         // 'connectTimeout'    => 1,
         // 'persistent'        => false,
-        'password'          => $REDIS_URL['pass'] ?: '',
+        'password'          => !empty($REDIS_URL['pass']) ? $REDIS_URL['pass'] : '',
         // 'automaticFailOver' => true,
     ];
 
