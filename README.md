@@ -1,15 +1,15 @@
-# mediawiki-dokku
+# MediaWiki docker image for dokku
 
-MediaWiki docker image for dokku
+## TODO
 
- - [*] supports linked database (via DATABASE_URL)
- - [*] supports linked redis (via REDIS_URL)
- - [*] supports linked smtp (via SMTP_URL)
+ - [x] supports linked database (via DATABASE_URL)
+ - [x] supports linked redis (via REDIS_URL)
+ - [x] supports linked smtp (via SMTP_URL)
  - [ ] supports linked memcached
 
 ## Usage
 
-Currently this can only be used via a `Dockerfile` deployment
+Currently this can only be used via a `Dockerfile` dokku deployment
 
 ## Deployment
 
@@ -47,8 +47,8 @@ When starting the following vars are required:
     MEDIAWIKI_ADMIN_USER
     MEDIAWIKI_ADMIN_PASS
 
-The following vars can be used to change some behaviour:
+This creates an admin user and also uses this user to perform database maintenance on restart.
 
-    MEDIAWIKI_UPDATE
+The following vars can be used to change some behaviour:
 
     MEDIAWIKI_ENABLE_REDIS_JOBQUEUE
