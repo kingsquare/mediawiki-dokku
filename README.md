@@ -1,3 +1,5 @@
+[![Docker Pulls](https://img.shields.io/docker/pulls/kingsquare/mediawiki-dokku.svg)](https://hub.docker.com/r/kingsquare/mediawiki-dokku/)
+
 # MediaWiki docker image for dokku
 
 ## TODO
